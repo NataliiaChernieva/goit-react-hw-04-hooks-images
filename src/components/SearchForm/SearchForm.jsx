@@ -1,54 +1,50 @@
-import React, { Component } from 'react';
+import React, {useState}  from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 import { CustomSearchForm, SearchFormButton, SearchFormButtonLabel, SearchFormInput  } from './SearchForm.styled';
 import PropTypes from 'prop-types';
 
-export default class SearchForm extends Component {
-    state = {
-        value: '',
+export default function SearchForm({onSubmit}) {
+    const [value, setValue] = useState('');
+    
+    const handleInputValue = e => {
+        setValue(e.target.value.toLowerCase());
     }
 
-    static propTypes = {
-        value: PropTypes.string,
-        onSubmit: PropTypes.func.isRequired,
-    }
-
-    handleInputValue = e => {
-        this.setState({ value: e.target.value.toLowerCase()})
-    }
-
-    handleSubmit = (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         
-        if (this.state.value.trim() === '') {
+        if (value.trim() === '') {
             // alert('Введите название картинки.'); 
             toast.error('Input picture`s name.')
             return;
         }
-        this.props.onSubmit(this.state.value);
-        this.resetInput();
+        onSubmit(value);
+        resetInput();
     }
 
-    resetInput = () => {
-        this.setState({ value: '' });
+    const resetInput = () => {
+        setValue('');
     }
 
-    render() {
+    
         return (
-            <CustomSearchForm onSubmit={this.handleSubmit}>
+            <CustomSearchForm onSubmit={handleSubmit}>
                 <SearchFormButton type="submit">
                     <SearchFormButtonLabel>Search</SearchFormButtonLabel>
                 </SearchFormButton>
                 <SearchFormInput
                     type="text"
-                    value = {this.state.value}
+                    value = {value}
                     placeholder = "Search images and photos"
                     autocomplete="off"
-                    onChange={this.handleInputValue}
+                    onChange={handleInputValue}
                 />
                 <Toaster/>
             </CustomSearchForm>
         )
-    }
-    
 };
+
+SearchForm.propTypes = {
+        value: PropTypes.string,
+        onSubmit: PropTypes.func.isRequired,
+    }

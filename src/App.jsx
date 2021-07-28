@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {useState, useEffect} from 'react';
 import { CustomApp } from './App.styled';
 import Searchbar from './components/Searchbar/Searchbar';
 import ImageGallery from './components/ImageGallery/ImageGallery';
@@ -16,94 +16,89 @@ const Status = {
 };
 
  
-export default class App extends Component {
-    state = {
-        imageName: null,
-        images: [],
-        page: 1,
-        selectedImage:null,
-        status: Status.IDLE,
-        error: null,
-    }
-
-    
-    componentDidUpdate(prevProps, prevState) {
-        const { status, imageName,images, page } = this.state;
+export default function App() {
+    const [imageName, setImageName] = useState(null);
+    const [images, setImages] = useState([]);
+    const [page, setPage] = useState(1);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [status, setStatus] = useState(Status.IDLE);
+    // const [error, setError] = useState(null);
+        
+    useEffect(() => {
         if (status === Status.RESOLVED && images.length === 0) {
-            // alert(`Oops, we did not find such picture as ${imageName}`);
             toast.error(`Oops, we did not find such picture as ${imageName}`);
-            this.setState({ status: Status.IDLE });
+            setStatus(Status.IDLE);
         }
 
         if (status === Status.PENDING) {
             api
-            .fetchImages(imageName, page)
-            .then(newImages => this.setState(prevState => ({
-                images: [...prevState.images, ...newImages],
-                status: Status.RESOLVED,
-            })))
-            .catch(error => this.setState({ error, status: Status.REJECTED }));
+                .fetchImages(imageName, page)
+                .then(newImages =>{
+                    setImages(prevImages => [...prevImages, ...newImages]);
+                    setStatus(Status.RESOLVED);
+                }
+                )
+                .catch(error =>{
+                    // setError(error);
+                    setStatus(Status.REJECTED);
+                }
+                );
         }
 
         window.scrollTo({
             top: document.documentElement.scrollHeight,
             behavior: 'smooth',
         });
-    }
     
+    }, [imageName, page, status, images])
 
-    searchbarInputValueHandler = (value) => {
+     
+
+    const searchbarInputValueHandler = (value) => {
         // console.log('value :>> ', value);
         if (value.trim() !== '') {
-            this.setState({
-                imageName: value,
-                status: Status.PENDING,
-            })
+            setImageName(value);
+            setStatus(Status.PENDING);
         }
-
-        if (this.state.imageName !== value) {
-            this.setState({
-                images: [],
-                page: 1,
-            })
+    
+        if (imageName !== value) {
+            setImages([]);
+            setPage(1);
+        }
                 
-        }
-  }
+    }
+  
 
-    handleLoadMoreBtnClick = () => {
-        this.setState(prevState => ({
-            page: prevState.page + 1,
-            status: Status.PENDING,
-        }))
+    const handleLoadMoreBtnClick = () => {
+        setPage(page => page + 1);
+        setStatus(Status.PENDING);
     }
 
-    handleSelectImage = data => {
-        this.setState({ selectedImage: data, });  
+    const handleSelectImage = data => {
+        setSelectedImage(data);  
     }
 
-    closeModal = () => {
-        this.setState({ selectedImage: null, })
+    const closeModal = () => {
+        setSelectedImage(null);
     }
 
-    render() {
-        const { status, images, selectedImage } = this.state;
-        return (
+    return (
             <CustomApp>
-                <Searchbar onSubmit={this.searchbarInputValueHandler} />
+                <Searchbar onSubmit={searchbarInputValueHandler} />
                 <Toaster />
-                <ImageGallery images={images} onSelect={this.handleSelectImage}/>
-                {status===Status.RESOLVED && <Button type="button" onClick={this.handleLoadMoreBtnClick}>Load more</Button>}
+                <ImageGallery images={images} onSelect={handleSelectImage}/>
+                {status===Status.RESOLVED && <Button type="button" onClick={handleLoadMoreBtnClick}>Load more</Button>}
                 {selectedImage && <Modal
                     src={selectedImage.largeImageURL}
                     alt={selectedImage.tags}
-                    onClose={this.closeModal}
-                    state={this.state.status} />}
-                {this.state.status === Status.PENDING && <Loader
+                    onClose={closeModal}
+                    state={status} />}
+                {status === Status.PENDING && <Loader
                                                             type="Circles"
                                                             color="#00BFFF" height={300} width={300}
                                                             timeout={5000} 
                                                         />}
         </CustomApp>)
-    }
+
 }
 
