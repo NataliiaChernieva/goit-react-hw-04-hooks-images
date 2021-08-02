@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 
 export const CurrentImageGallery = styled.ul`
   display: grid;
-  max-width: calc(100vw - 48px);
+  max-width: calc(100vw - 66px);
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   grid-gap: 16px;
   margin-top: 0;

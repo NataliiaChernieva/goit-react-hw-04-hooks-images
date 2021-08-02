@@ -25,15 +25,15 @@ export default function App() {
     // const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (status === Status.RESOLVED && images.length === 0) {
-            toast.error(`Oops, we did not find such picture as ${imageName}`);
-            setStatus(Status.IDLE);
-        }
-
         if (status === Status.PENDING) {
             api
                 .fetchImages(imageName, page)
                 .then(newImages => {
+                    if (newImages.length === 0) {
+                        toast.error(`Oops, we did not find such picture as ${imageName}`);
+                        setStatus(Status.IDLE);
+                        return;
+                    }
                     setImages(prevImages => [...prevImages, ...newImages]);
                     setStatus(Status.RESOLVED);
                 })
@@ -43,13 +43,14 @@ export default function App() {
                 });
         }
 
-        window.scrollTo({
+    }, [imageName, page, status])
+
+    useEffect(() => {
+         window.scrollTo({
             top: document.documentElement.scrollHeight,
             behavior: 'smooth',
-        });
-
-    }, [imageName, page, status, images])
-
+        })
+    }, [images])
     
     // if (status === Status.REJECTED) {
     //     return {error.message}
